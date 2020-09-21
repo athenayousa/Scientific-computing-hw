@@ -57,7 +57,7 @@ num_pi_32 = []
 y_error_single = []
 y_error_double = []
 t = 1 / np.sqrt(3)
-n = 30
+n = 9
 num_pi.append(6 * np.power(2, 0) * t)
 for i in range(1, n):
     t = get_pi(t)
@@ -137,7 +137,7 @@ for i in range(1, n):
     num_pi.append(pi)
     error = abs(pi-np.pi)/np.pi
     y_error_double.append(error)
-    print(pi)
+
 pi_64 = num_pi[-1]
 print('with double precision, Pi is:', pi_64)
 
@@ -151,7 +151,7 @@ for i in range(1, n):
     num_pi_32.append(pi)
     error = abs(pi-np.float32(np.pi))/np.pi
     y_error_single.append(error)
-    print(pi)
+    print(i,"single",pi)
 pi_32 = num_pi_32[-1]
 print('with single precision, Pi is:', pi_32)
 # plot
@@ -188,24 +188,21 @@ plt.legend()
 plt.show()
 
 # 3.1
-x = 1.5e-20
-y_1 = np.log(x + 1)
-y_2 = np.log1p(x)
-print(y_1)
-print(y_2)
-x_num = []
+
+x_num = np.logspace(-18,-14,50)
 y_1_num = []
 y_2_num = []
-for i in range(1, 24):
-    x_num.append(x)
+for i in range(0, len(x_num)):
+    x = x_num[i]
     y_1_num.append(np.log(x + 1) / x)
     y_2_num.append(np.log1p(x) / x)
-    x = x * 1.8
 
-plt.plot(x_num, y_1_num, color="r", linestyle="--", marker="s", linewidth=1, label='log')
-plt.plot(x_num, y_2_num, color="g", linestyle=":", marker="+", linewidth=1, label='log1p')
+
+plt.plot(x_num, y_1_num, color="r", linestyle="--", marker="s", linewidth=1, label='log',ms = 0.5)
+plt.plot(x_num, y_2_num, color="g", linestyle=":", marker="+", linewidth=1, label='log1p', ms = 0.5)
 plt.xlabel('the value of x')
 plt.ylabel('the value of ln(1+x)/x')
+plt.title('compare ln(1+x) and log1p')
 plt.legend()
 
 
@@ -227,18 +224,21 @@ x = 1e-4
 x_num = []
 y_ln = []
 y_taylor = []
-for i in range(1, 500):
+for i in range(1, 400):
     x_num.append(x)
+
     y_ln.append(abs(np.log(1 + x)-np.log1p(x))/np.log1p(x))
 
     y_taylor.append(abs(taylor_ln(x)-np.log1p(x))/np.log1p(1))
-    x = x + 1e-7
+    x= x+1e-7
+
 
 plt.plot(x_num, y_ln, color="r", linestyle="--", marker="s", ms=0.1, linewidth=1, label='ln(1+x)')
 plt.plot(x_num, y_taylor, color="g", linestyle=":", marker="+", ms=0.1, linewidth=1, label='taylor')
 plt.xlabel('x')
 plt.ylabel('relative error')
 plt.legend()
+plt.title('the error of taylor and ln(1+x)')
 plt.show()
 
 x = 1e-10
@@ -268,18 +268,20 @@ def new(x):
     return (x * np.log(1 + x)) / ((1 + x) - 1)
 
 
-x = 1e-2
-k = x
-x_num = []
+
+x_num = np.logspace(-12,0,500)
 y_log1p = []
 y_new = []
-for i in range(1, 75):
-    x_num.append(x)
+for i in range(0, len(x_num)):
+    x = x_num[i]
     y_new.append(abs(new(x)-np.log1p(x))/np.log1p(x))
-    x = x + 0.1 * k
 
-plt.plot(x_num, y_new, color="r", linestyle="--", marker="s", linewidth=1, ms=0.5)
 
+plt.plot(x_num, y_new, color="r", linestyle="--", marker="s", linewidth=1, ms=0.5, label=' alternative calculation')
+plt.xlabel('x')
+plt.ylabel('relative error')
+plt.legend()
+plt.title('error of this calculation')
 plt.show()
 
 
@@ -302,7 +304,7 @@ sin_32_list = []
 err1 = []
 err2 = []
 
-for j in range(0, 8):
+for j in range(7, 15):
     h = np.power(2, j)*np.power(1/2, 16)
     h_list.append(h)
     sin_64 = second_derivative_64(x0, h)
@@ -318,7 +320,7 @@ plt.ylabel('relative error')
 plt.legend()
 plt.show()
 
-plt.plot(h_list, err2, color="g", linestyle=":", marker="+", linewidth=1, ms=4, label='single')
+plt.plot(h_list, err2, color="r", linestyle=":", marker="+", linewidth=1, ms=4, label='single')
 plt.xlabel('h')
 plt.ylabel('relative error')
 plt.legend()
@@ -326,9 +328,72 @@ plt.show()
 
 
 # 4.2
-x = sys.float_info.epsilon
-y = np.finfo(np.float32).eps
-print(np.power(y, 1/4))
-print(np.power(x, 1/4))
+x0 = np.pi / 4
+exact_sin = -np.sin(x0)
+h_list = []
+sin_64_list = []
+sin_32_list = []
+err1 = []
+err2 = []
+error_t = []
+error_r = []
+epsilon_64 = np.finfo(np.float).eps
+epsilon_32 = np.finfo(np.float32).eps
+# double plot
+for j in range(0, 8):
+    h = np.power(2, j)*np.power(1/2, 16)
+    h_list.append(h)
+    sin_64 = second_derivative_64(x0, h)
+    sin_32 = second_derivative_32(x0, h)
+    err1.append(abs(sin_64 - exact_sin) / abs(exact_sin))
+    err2.append(abs(sin_32 - exact_sin) / abs(exact_sin))
+    sin_64_list.append(sin_64)
+    sin_32_list.append(sin_32)
+    error_t.append(epsilon_64/(np.power(h, 2)))
+    error_r.append(np.power(h, 2)/12)
 
+plt.plot(h_list, err1, color="r", linestyle="--", marker="^", linewidth=1, ms=2, label='double')
+plt.plot(h_list, error_t, color="b", linestyle="--", marker="+", linewidth=1, ms=2, label='truncation error')
+plt.plot(h_list, error_r, color="g", linestyle="--", marker="s", linewidth=1, ms=2, label='roundoff error')
+plt.xlabel('h')
+plt.ylabel('relative error')
+plt.legend()
+plt.title('double precision error')
+plt.show()
 
+print(np.power(12*epsilon_64,1/4))
+
+# single plot
+x0 = np.pi / 4
+exact_sin = -np.sin(x0)
+h_list = []
+sin_64_list = []
+sin_32_list = []
+err1 = []
+err2 = []
+error_t = []
+error_r = []
+epsilon_64 = np.finfo(np.float).eps
+epsilon_32 = np.finfo(np.float32).eps
+for j in range(7, 15):
+    h = np.power(2, j)*np.power(1/2, 16)
+    h_list.append(h)
+    sin_64 = second_derivative_64(x0, h)
+    sin_32 = second_derivative_32(x0, h)
+    err1.append(abs(sin_64 - exact_sin) / abs(exact_sin))
+    err2.append(abs(sin_32 - exact_sin) / abs(exact_sin))
+    sin_64_list.append(sin_64)
+    sin_32_list.append(sin_32)
+    error_t.append(epsilon_32/(np.power(h, 2)))
+    error_r.append(np.power(h, 2)/12)
+
+plt.plot(h_list, err2, color="r", linestyle="--", marker="^", linewidth=1, ms=4, label='single')
+plt.plot(h_list, error_t, color="b", linestyle="--", marker="+", linewidth=1, ms=2, label='truncation error')
+plt.plot(h_list, error_r, color="g", linestyle="--", marker="s", linewidth=1, ms=2, label='roundoff error')
+plt.xlabel('h')
+plt.ylabel('relative error')
+plt.legend()
+plt.title('single precision error')
+plt.show()
+print(np.power(12*epsilon_32,1/4))
+print(np.power(1/2,12))
